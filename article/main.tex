@@ -1,0 +1,189 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{An\'alise Comparativa de T\'ecnicas de Detec\c{c}\~ao Facial sob Varia\c{c}\~oes de Ilumina\c{c}\~ao para Aplica\c{c}\~oes em Seguran\c{c}a\\
+{\footnotesize \textit{Comparative Analysis of Facial Detection Techniques under Illumination Variations for Security Applications}}
+}
+
+\author{\IEEEauthorblockN{Rafael C\^andido, Lucas Tourinho, Gabriella Pereira, Lucas Rocha}
+\IEEEauthorblockA{\textit{SUBSTITUIR: Departamento} \\
+\textit{SUBSTITUIR: Nome da Institui\c{c}\~ao}\\
+SUBSTITUIR: Brasília, Distrito Federal, Brasil \\
+SUBSTITUIR: emails@instituicao.edu.br}
+}
+
+\maketitle
+
+% -------------------------------------------------------
+% ABSTRACT (EN)
+% -------------------------------------------------------
+\begin{abstract}
+Facial detection is one of the most fundamental tasks in computer vision, with direct applications in security, access control, and surveillance. Despite significant advances in the field, illumination variation remains one of the primary practical challenges: algorithms that perform well in controlled environments frequently fail in real-world conditions, where low light, lateral illumination, or overexposure are common. This paper presents a comparative analysis of three facial detection approaches --- Haar Cascade, HOG+SVM, and a lightweight Convolutional Neural Network (YuNet) --- evaluated on images captured under four controlled illumination conditions. The study also investigates the impact of Contrast Limited Adaptive Histogram Equalization (CLAHE) preprocessing on each method. Experiments are conducted in Python using OpenCV and scikit-image, measuring precision, recall, F1-score, and average inference time per image. Results indicate that CNN-based methods are more robust to adverse lighting, while classical detectors benefit more significantly from CLAHE preprocessing.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Facial Detection, Image Processing, Illumination, Haar Cascade, HOG+SVM, Convolutional Neural Network, CLAHE, OpenCV, Security.
+\end{IEEEkeywords}
+
+% -------------------------------------------------------
+% RESUMO (PT)
+% -------------------------------------------------------
+\section*{Resumo}
+A detec\c{c}\~ao facial \'e uma das tarefas mais fundamentais em vis\~ao computacional, com aplica\c{c}\~oes diretas em seguran\c{c}a, controle de acesso e vigil\^ancia. Apesar dos avan\c{c}os na \'area, a varia\c{c}\~ao de ilumina\c{c}\~ao ainda representa um dos principais desafios pr\'aticos. Este trabalho apresenta uma an\'alise comparativa entre tr\^es t\'ecnicas de detec\c{c}\~ao facial --- Haar Cascade, HOG+SVM e uma rede neural convolucional leve (YuNet) --- avaliadas sobre imagens capturadas em quatro condi\c{c}\~oes de ilumina\c{c}\~ao distintas, com e sem a aplica\c{c}\~ao do pr\'e-processamento CLAHE. Os experimentos s\~ao conduzidos em Python com as bibliotecas OpenCV e scikit-image.
+
+\noindent\textbf{Palavras-chave:} Detec\c{c}\~ao Facial, Processamento de Imagens, Ilumina\c{c}\~ao, Haar Cascade, HOG+SVM, Rede Neural Convolucional, CLAHE, OpenCV, Seguran\c{c}a.
+
+% -------------------------------------------------------
+\section{Introdu\c{c}\~ao}
+
+Sistemas de detec\c{c}\~ao facial s\~ao amplamente utilizados em aplica\c{c}\~oes de seguran\c{c}a, como controle de acesso, vigil\^ancia e autentica\c{c}\~ao biom\'etrica. A capacidade de identificar a presen\c{c}a de um rosto em uma imagem de forma r\'apida e confi\'avel \'e um pr\'e-requisito para qualquer pipeline de reconhecimento facial, e seu desempenho impacta diretamente a efic\'acia do sistema como um todo.
+
+Um dos fatores que mais afeta essa confiabilidade \'e a varia\c{c}\~ao de ilumina\c{c}\~ao. Em ambientes reais, dificilmente as condi\c{c}\~oes de luz s\~ao controladas: c\^ameras de seguran\c{c}a operam em ambientes internos com ilumina\c{c}\~ao artificial irregular, em \'areas externas sujeitas a contra-luz, ou em locais com pouca luminosidade \cite{Adini1997}. Nesses cen\'arios, detectores que apresentam bom desempenho em condi\c{c}\~oes ideais podem falhar de forma significativa.
+
+Ao longo das \'ultimas d\'ecadas, diferentes abordagens foram desenvolvidas para o problema de detec\c{c}\~ao facial. Viola e Jones \cite{ViolaJones2001} propuseram um detector baseado em caracter\'isticas de Haar e classificadores em cascata, que se tornou refer\^encia pela sua velocidade de processamento. Dalal e Triggs \cite{DalalTriggs2005} introduziram os Histogramas de Gradientes Orientados (HOG) combinados com m\'aquinas de vetores de suporte (SVM), com maior robustez a varia\c{c}\~oes de posi\c{c}\~ao. Mais recentemente, abordagens baseadas em redes neurais convolucionais profundas passaram a dominar os benchmarks da \'area, como o MTCNN \cite{Zhang2016} e o YuNet \cite{Wu2023}, este \'ultimo integrado diretamente ao OpenCV com foco em efici\^encia computacional.
+
+Para mitigar os efeitos da ilumina\c{c}\~ao sobre a qualidade das imagens, t\'ecnicas de pr\'e-processamento como a Equaliza\c{c}\~ao Adaptativa de Histograma com Limite de Contraste (CLAHE) \cite{Zuiderveld1994} t\^em sido amplamente empregadas. O CLAHE melhora o contraste local da imagem sem amplificar ru\'ido de forma excessiva, tornando-se uma op\c{c}\~ao interessante como etapa anterior \`a detec\c{c}\~ao.
+
+Neste contexto, este trabalho tem como objetivo comparar o desempenho dos detectores Haar Cascade, HOG+SVM e YuNet em imagens com quatro condi\c{c}\~oes distintas de ilumina\c{c}\~ao, avaliando tamb\'em o impacto do pr\'e-processamento CLAHE sobre cada m\'etodo. O restante do artigo est\'a organizado da seguinte forma: a Se\c{c}\~ao II apresenta a fundamenta\c{c}\~ao te\'orica; a Se\c{c}\~ao III descreve a metodologia adotada; a Se\c{c}\~ao IV apresenta os resultados; a Se\c{c}\~ao V discute os achados; e a Se\c{c}\~ao VI conclui o trabalho.
+
+% -------------------------------------------------------
+\section{Fundamenta\c{c}\~ao Te\'orica}
+% TODO: preencher com descricao de cada detector e do CLAHE.
+% Sugestao de subsecoes:
+%   \subsection{Haar Cascade}
+%   \subsection{HOG + SVM}
+%   \subsection{YuNet}
+%   \subsection{CLAHE}
+
+\textit{[A ser desenvolvida.]}
+
+% -------------------------------------------------------
+\section{Metodologia}
+
+Esta se\c{c}\~ao descreve o pipeline experimental adotado para comparar os tr\^es detectores faciais sob diferentes condi\c{c}\~oes de ilumina\c{c}\~ao.
+
+\subsection{Dataset}
+
+O experimento utiliza duas fontes de imagens complementares.
+
+A primeira \'e um conjunto pr\'oprio coletado pelos autores, composto por fotografias de rostos capturadas em quatro condi\c{c}\~oes de ilumina\c{c}\~ao controladas: (i) ilumina\c{c}\~ao frontal adequada, (ii) baixa luminosidade, (iii) ilumina\c{c}\~ao lateral e (iv) superexposi\c{c}\~ao. As imagens foram obtidas com smartphone em ambiente interno, mantendo posi\c{c}\~ao e dist\^ancia fixas para isolar o fator de ilumina\c{c}\~ao. Cada condi\c{c}\~ao conta com aproximadamente 5 imagens, totalizando cerca de 20 amostras.
+
+A segunda fonte \'e o dataset p\'ublico \textbf{Labeled Faces in the Wild (LFW)} \cite{LFWTech}, amplamente utilizado como benchmark em tarefas de detec\c{c}\~ao e reconhecimento facial. Do LFW, foram selecionadas imagens representativas de condi\c{c}\~oes variadas de ilumina\c{c}\~ao para complementar o conjunto de avalia\c{c}\~ao e permitir uma compara\c{c}\~ao com cen\'arios mais diversos.
+
+Todas as imagens foram anotadas manualmente com \textit{bounding boxes} delimitando a regi\~ao do rosto, servindo como \textit{ground truth} para o c\'alculo das m\'etricas.
+
+\subsection{Pr\'e-processamento}
+
+Cada imagem \'e processada em duas vers\~oes: sem pr\'e-processamento (imagem bruta) e com aplica\c{c}\~ao de CLAHE. O CLAHE \'e aplicado no canal de luminosidade da imagem convertida para o espa\c{c}o de cores YCrCb, com \textit{clipLimit} de 2.0 e grade de 8$\times$8, seguindo a implementa\c{c}\~ao disponível no OpenCV \cite{Zuiderveld1994}. Essa abordagem permite avaliar isoladamente o efeito do pr\'e-processamento sobre cada detector.
+
+\subsection{Implementa\c{c}\~ao dos Detectores}
+
+Os tr\^es detectores s\~ao implementados em Python, utilizando as bibliotecas OpenCV e scikit-image.
+
+O \textbf{Haar Cascade} utiliza o classificador pr\'e-treinado \texttt{haarcascade\_frontalface\_default.xml}, dispon\'ivel nativamente no OpenCV \cite{ViolaJones2001}.
+
+O \textbf{HOG+SVM} \'e implementado com o detector de pessoas da scikit-image como base estrutural, adaptado para detec\c{c}\~ao facial por meio do descritor HOG com par\^ametros \texttt{orientations=9}, \texttt{pixels\_per\_cell=(8,8)} e \texttt{cells\_per\_block=(2,2)}, seguindo \cite{DalalTriggs2005}.
+
+O \textbf{YuNet} \'e carregado via m\'odulo \texttt{cv2.FaceDetectorYN}, utilizando o modelo \texttt{face\_detection\_yunet\_2023mar.onnx} \cite{Wu2023}. Por ser integrado ao OpenCV, dispensa depend\^encias externas e oferece infer\^encia eficiente.
+
+\subsection{M\'etricas de Avalia\c{c}\~ao}
+
+O desempenho de cada detector \'e avaliado pelas m\'etricas de \textbf{Precis\~ao}, \textbf{Recall} e \textbf{F1-score}, calculadas com base na intersec\c{c}\~ao sobre a uni\~ao (\textit{IoU}) entre a detec\c{c}\~ao e o \textit{ground truth}, adotando limiar de IoU $\geq 0{,}5$ para considerar uma detec\c{c}\~ao como verdadeiro positivo. Al\'em disso, o \textbf{tempo m\'edio de infer\^encia} por imagem \'e registrado para avaliar a viabilidade de uso em sistemas de tempo real.
+
+% -------------------------------------------------------
+\section{Resultados}
+% TODO: Inserir tabelas e graficos apos rodar os experimentos.
+
+\textit{[A ser preenchido ap\'os os experimentos.]}
+
+% -------------------------------------------------------
+\section{Discuss\~ao}
+% TODO: Interpretar os resultados. Relacionar com a literatura.
+% Discutir limitacoes (tamanho do dataset, condicoes controladas).
+
+\textit{[A ser desenvolvida.]}
+
+% -------------------------------------------------------
+\section{Conclus\~ao}
+% TODO: Retomar objetivo, resumir achados, contribuicao pratica.
+
+\textit{[A ser desenvolvida.]}
+
+% -------------------------------------------------------
+\section*{Agradecimentos}
+\textit{[A ser desenvolvida.]}
+
+% -------------------------------------------------------
+\begin{thebibliography}{00}
+
+\bibitem{ViolaJones2001}
+P. Viola and M. J. Jones, ``Rapid object detection using a boosted cascade of simple features,''
+\textit{Proc. IEEE CVPR}, vol. 1, pp. I-511--I-518, 2001.
+
+\bibitem{DalalTriggs2005}
+N. Dalal and B. Triggs, ``Histograms of oriented gradients for human detection,''
+\textit{Proc. IEEE CVPR}, vol. 1, pp. 886--893, 2005.
+
+\bibitem{Zhang2016}
+K. Zhang, Z. Zhang, Z. Li, and Y. Qiao, ``Joint face detection and alignment using multitask cascaded convolutional networks,''
+\textit{IEEE Signal Processing Letters}, vol. 23, no. 10, pp. 1499--1503, 2016.
+
+\bibitem{Wu2023}
+W. Wu, H. Peng, and S. Yu, ``YuNet: A tiny millisecond-level face detector,''
+\textit{Machine Intelligence Research}, vol. 20, no. 5, pp. 656--665, 2023.
+
+\bibitem{Zuiderveld1994}
+K. Zuiderveld, ``Contrast limited adaptive histogram equalization,''
+\textit{Graphics Gems IV}, Academic Press, pp. 474--485, 1994.
+
+\bibitem{Adini1997}
+Y. Adini, Y. Moses, and S. Ullman, ``Face recognition: The problem of compensating for changes in illumination direction,''
+\textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}, vol. 19, no. 7, pp. 721--732, 1997.
+
+\bibitem{LFWTech}
+G. B. Huang, M. Ramesh, T. Berg, and E. Learned-Miller, ``Labeled faces in the wild: A database for studying face recognition in unconstrained environments,''
+University of Massachusetts, Amherst, Tech. Rep. 07-49, 2007.
+
+\end{thebibliography}
+
+\end{document}
