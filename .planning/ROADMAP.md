@@ -48,7 +48,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Build dataset/lfw_subset/: select 25 images/condition via lfw_attributes.txt, Haar auto-annotate, write gt.json
+- [x] 02-01-PLAN.md — Build dataset/lfw_subset/: select 25 images/condition via lfw_attributes.txt, Haar auto-annotate, write gt.json
 - [ ] 02-02-PLAN.md — Create dataset/proprio/ structure, write convert_labelme.py, human capture checkpoint, produce gt.json
 - [ ] 02-03-PLAN.md — Validate both gt.json files, run evaluate.py on lfw_subset and proprio, verify CSVs
 

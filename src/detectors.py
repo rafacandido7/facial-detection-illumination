@@ -40,7 +40,7 @@ def init_detectors() -> dict:
         cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
     )
     hog = dlib.get_frontal_face_detector()
-    yunet = cv2.FaceDetectorYN.create(str(MODEL_PATH), "", (1, 1))
+    yunet = cv2.FaceDetectorYN.create(str(MODEL_PATH), "", (1, 1), score_threshold=0.7)
     return {"haar": haar, "hog": hog, "yunet": yunet}
 
 
