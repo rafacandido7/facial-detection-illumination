@@ -3,38 +3,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
-\usepackage{listings}
-\usepackage{xcolor}
-
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-\lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
-    numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
-    breakatwhitespace=false,
-    breaklines=true,
-    captionpos=b,
-    keepspaces=true,
-    numbers=left,
-    numbersep=5pt,
-    showspaces=false,
-    showstringspaces=false,
-    showtabs=false,
-    tabsize=2
-}
-\lstset{style=mystyle}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -54,7 +24,7 @@
 % ABSTRACT (EN)
 % -------------------------------------------------------
 \begin{abstract}
-Facial detection is one of the most fundamental tasks in computer vision, with direct applications in security, access control, and surveillance. Despite significant advances in the field, illumination variation remains one of the primary practical challenges: algorithms that perform well in controlled environments frequently fail in real-world conditions, where low light, lateral illumination, or overexposure are common. This paper presents a comparative analysis of three facial detection approaches --- Haar Cascade, HOG+SVM, and a lightweight Convolutional Neural Network (YuNet) --- evaluated on images captured under four controlled illumination conditions. The study also investigates the impact of Contrast Limited Adaptive Histogram Equalization (CLAHE) preprocessing on each method. Experiments are conducted in Python using OpenCV and scikit-image, measuring precision, recall, F1-score, and average inference time per image. Results indicate that CNN-based methods are more robust to adverse lighting, while classical detectors benefit more significantly from CLAHE preprocessing.
+Facial detection is one of the most fundamental tasks in computer vision, with direct applications in security, access control, and surveillance. Despite significant advances in the field, illumination variation remains one of the primary practical challenges: algorithms that perform well in controlled environments frequently fail in real-world conditions, where low light, lateral illumination, or overexposure are common. This paper presents a comparative analysis of three facial detection approaches --- Haar Cascade, HOG+SVM, and a lightweight Convolutional Neural Network (YuNet) --- evaluated on images captured under four controlled illumination conditions. The study also investigates the impact of Contrast Limited Adaptive Histogram Equalization (CLAHE) preprocessing on each method. Experiments are conducted in Python using OpenCV and dlib, measuring precision, recall, F1-score, and average inference time per image. Results indicate that CNN-based methods are more robust to adverse lighting, while classical detectors benefit more significantly from CLAHE preprocessing.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -65,33 +35,43 @@ Facial Detection, Image Processing, Illumination, Haar Cascade, HOG+SVM, Convolu
 % RESUMO (PT)
 % -------------------------------------------------------
 \section*{Resumo}
-A detec\c{c}\~ao facial \'e uma das tarefas mais fundamentais em vis\~ao computacional, com aplica\c{c}\~oes diretas em seguran\c{c}a, controle de acesso e vigil\^ancia. Apesar dos avan\c{c}os na \'area, a varia\c{c}\~ao de ilumina\c{c}\~ao ainda representa um dos principais desafios pr\'aticos. Este trabalho apresenta uma an\'alise comparativa entre tr\^es t\'ecnicas de detec\c{c}\~ao facial --- Haar Cascade, HOG+SVM e uma rede neural convolucional leve (YuNet) --- avaliadas sobre imagens capturadas em quatro condi\c{c}\~oes de ilumina\c{c}\~ao distintas, com e sem a aplica\c{c}\~ao do pr\'e-processamento CLAHE. Os experimentos s\~ao conduzidos em Python com as bibliotecas OpenCV e scikit-image.
+A detec\c{c}\~ao facial \'e uma das tarefas mais fundamentais em vis\~ao computacional, com aplica\c{c}\~oes diretas em seguran\c{c}a, controle de acesso e vigil\^ancia. Apesar dos avan\c{c}os na \'area, a varia\c{c}\~ao de ilumina\c{c}\~ao ainda representa um dos principais desafios pr\'aticos. Este trabalho apresenta uma an\'alise comparativa entre tr\^es t\'ecnicas de detec\c{c}\~ao facial --- Haar Cascade, HOG+SVM e uma rede neural convolucional leve (YuNet) --- avaliadas sobre imagens capturadas em quatro condi\c{c}\~oes de ilumina\c{c}\~ao distintas, com e sem a aplica\c{c}\~ao do pr\'e-processamento CLAHE. Os experimentos s\~ao conduzidos em Python com as bibliotecas OpenCV e dlib.
 
 \noindent\textbf{Palavras-chave:} Detec\c{c}\~ao Facial, Processamento de Imagens, Ilumina\c{c}\~ao, Haar Cascade, HOG+SVM, Rede Neural Convolucional, CLAHE, OpenCV, Seguran\c{c}a.
 
 % -------------------------------------------------------
 \section{Introdu\c{c}\~ao}
 
-Sistemas de detec\c{c}\~ao facial s\~ao amplamente utilizados em aplica\c{c}\~oes de seguran\c{c}a, como controle de acesso, vigil\^ancia e autentica\c{c}\~ao biom\'etrica. A capacidade de identificar a presen\c{c}a de um rosto em uma imagem de forma r\'apida e confi\'avel \'e um pr\'e-requisito para qualquer pipeline de reconhecimento facial, e seu desempenho impacta diretamente a efic\'acia do sistema como um todo.
+C\^ameras de seguran\c{c}a raramente operam em condi\c{c}\~oes ideais de ilumina\c{c}\~ao. Ambientes internos t\^em fontes de luz artificiais irregulares, \'areas externas est\~ao sujeitas a contra-luz, e per\'iodos noturnos reduzem drasticamente a qualidade das imagens captadas \cite{Adini1997}. Para que um sistema de detec\c{c}\~ao facial funcione de forma confi\'avel nesses cen\'arios, o detector precisa ser robusto a essas varia\c{c}\~oes --- e saber exatamente em quais condi\c{c}\~oes cada m\'etodo falha \'e t\~ao importante quanto saber quando ele funciona.
 
-Um dos fatores que mais afeta essa confiabilidade \'e a varia\c{c}\~ao de ilumina\c{c}\~ao. Em ambientes reais, dificilmente as condi\c{c}\~oes de luz s\~ao controladas: c\^ameras de seguran\c{c}a operam em ambientes internos com ilumina\c{c}\~ao artificial irregular, em \'areas externas sujeitas a contra-luz, ou em locais com pouca luminosidade \cite{Adini1997}. Nesses cen\'arios, detectores que apresentam bom desempenho em condi\c{c}\~oes ideais podem falhar de forma significativa.
+Escolhemos tr\^es detectores que representam momentos distintos da evolu\c{c}\~ao da \'area e que est\~ao todos dispon\'iveis como ferramentas \textit{open source} de f\'acil reprodutibilidade. O Haar Cascade de Viola e Jones \cite{ViolaJones2001}, integrado ao OpenCV desde suas vers\~oes iniciais, foi o primeiro detector facial em tempo real e ainda \'e amplamente utilizado; por\'em, \'e sabidamente sens\'ivel a varia\c{c}\~oes de contraste. O HOG+SVM de Dalal e Triggs \cite{DalalTriggs2005} surgiu justamente para superar essa fragilidade, introduzindo a normaliza\c{c}\~ao em blocos do descritor de gradientes para conferir maior invari\^ancia local \`a ilumina\c{c}\~ao. Por fim, o YuNet \cite{Wu2023} representa a abordagem atual baseada em CNN leve, tamb\'em integrada ao OpenCV, que aprende representa\c{c}\~oes diretamente dos dados sem precisar definir manualmente quais caracter\'isticas s\~ao discriminativas.
 
-Ao longo das \'ultimas d\'ecadas, diferentes abordagens foram desenvolvidas para o problema de detec\c{c}\~ao facial. Viola e Jones \cite{ViolaJones2001} propuseram um detector baseado em caracter\'isticas de Haar e classificadores em cascata, que se tornou refer\^encia pela sua velocidade de processamento. Dalal e Triggs \cite{DalalTriggs2005} introduziram os Histogramas de Gradientes Orientados (HOG) combinados com m\'aquinas de vetores de suporte (SVM), com maior robustez a varia\c{c}\~oes de posi\c{c}\~ao. Mais recentemente, abordagens baseadas em redes neurais convolucionais profundas passaram a dominar os benchmarks da \'area, como o MTCNN \cite{Zhang2016} e o YuNet \cite{Wu2023}, este \'ultimo integrado diretamente ao OpenCV com foco em efici\^encia computacional.
+Essa escolha forma uma progress\~ao natural em termos de como cada m\'etodo lida com a ilumina\c{c}\~ao: o Haar depende de padr\~oes de contraste fixos, o HOG normaliza gradientes para mitigar esse efeito, e o YuNet aprende a extrair caracter\'isticas sem essas hip\'oteses embutidas. Para cada um, avaliamos tamb\'em o impacto do CLAHE \cite{Zuiderveld1994} como etapa de pr\'e-processamento, verificando se a normaliza\c{c}\~ao de contraste local compensa as varia\c{c}\~oes de ilumina\c{c}\~ao ou introduz outros problemas.
 
-Para mitigar os efeitos da ilumina\c{c}\~ao sobre a qualidade das imagens, t\'ecnicas de pr\'e-processamento como a Equaliza\c{c}\~ao Adaptativa de Histograma com Limite de Contraste (CLAHE) \cite{Zuiderveld1994} t\^em sido amplamente empregadas. O CLAHE melhora o contraste local da imagem sem amplificar ru\'ido de forma excessiva, tornando-se uma op\c{c}\~ao interessante como etapa anterior \`a detec\c{c}\~ao.
-
-Neste contexto, este trabalho tem como objetivo comparar o desempenho dos detectores Haar Cascade, HOG+SVM e YuNet em imagens com quatro condi\c{c}\~oes distintas de ilumina\c{c}\~ao, avaliando tamb\'em o impacto do pr\'e-processamento CLAHE sobre cada m\'etodo. O restante do artigo est\'a organizado da seguinte forma: a Se\c{c}\~ao II apresenta a fundamenta\c{c}\~ao te\'orica; a Se\c{c}\~ao III descreve a metodologia adotada; a Se\c{c}\~ao IV apresenta os resultados; a Se\c{c}\~ao V discute os achados; e a Se\c{c}\~ao VI conclui o trabalho.
+O experimento foi conduzido sobre dois datasets: um subconjunto do LFW \cite{LFWTech} com 100 imagens classificadas por condi\c{c}\~ao de ilumina\c{c}\~ao e um conjunto pr\'oprio com 19 imagens capturadas pelos autores em ambiente controlado. As se\c{c}\~oes seguintes detalham a fundamenta\c{c}\~ao te\'orica (Se\c{c}\~ao~II), a metodologia (Se\c{c}\~ao~III), os resultados (Se\c{c}\~ao~IV), a discuss\~ao (Se\c{c}\~ao~V) e as conclus\~oes (Se\c{c}\~ao~VI).
 
 % -------------------------------------------------------
 \section{Fundamenta\c{c}\~ao Te\'orica}
-% TODO: preencher com descricao de cada detector e do CLAHE.
-% Sugestao de subsecoes:
-%   \subsection{Haar Cascade}
-%   \subsection{HOG + SVM}
-%   \subsection{YuNet}
-%   \subsection{CLAHE}
 
-\textit{[A ser desenvolvida.]}
+\subsection{Haar Cascade}
+O principal ponto de fragilidade do Haar Cascade frente \`a ilumina\c{c}\~ao \'e estrutural: o m\'etodo compara somas de intensidade em regi\~oes retangulares da imagem, o que significa que qualquer mudan\c{c}a no padr\~ao de contraste local --- sombras, reflexos, baixa luminosidade --- pode distorcer ou apagar as caracter\'isticas que o classificador aprendeu a reconhecer.
+
+A estrutura proposta por Viola e Jones \cite{ViolaJones2001} usa imagens integrais para calcular essas somas em tempo constante, tornando o m\'etodo muito eficiente. O AdaBoost seleciona as caracter\'isticas retangulares mais discriminativas e organiza os classificadores em cascata: regi\~oes sem rostos s\~ao descartadas nas etapas iniciais, concentrando o processamento onde h\'a maior probabilidade de haver uma face. \'E essa efici\^encia que explica por que o m\'etodo ainda \'e usado mais de vinte anos depois --- mas ela vem com a limita\c{c}\~ao de depender de padr\~oes de contraste fixos, aprendidos em condi\c{c}\~oes espec\'ificas de ilumina\c{c}\~ao.
+
+\subsection{HOG + SVM}
+O HOG+SVM surgiu em 2005 com uma motiva\c{c}\~ao expl\'icita de Dalal e Triggs \cite{DalalTriggs2005}: criar um descritor mais robusto a varia\c{c}\~oes de contraste do que os m\'etodos baseados em compara\c{c}\~ao direta de intensidade. Em vez de somas brutas, o m\'etodo calcula histogramas das orienta\c{c}\~oes dos gradientes locais em c\'elulas da imagem. Esses histogramas s\~ao normalizados em blocos sobrepostos, o que confere ao descritor uma invari\^ancia local a mudan\c{c}as de ilumina\c{c}\~ao dentro de cada bloco.
+
+Na pr\'atica, isso significa que o HOG tolera melhor varia\c{c}\~oes suaves de contraste, mas ainda pode falhar quando a ilumina\c{c}\~ao \'e muito escura ou quando sombras fortes alteram completamente a dire\c{c}\~ao dos gradientes locais. O vetor de descritores resultante \'e classificado por uma SVM treinada para separar faces de n\~ao-faces. Neste trabalho, usamos o detector frontal pr\'e-treinado da biblioteca dlib, que aplica essa abordagem com janela deslizante sobre a imagem em escala de cinza.
+
+\subsection{YuNet}
+Diferentemente do Haar e do HOG, o YuNet \cite{Wu2023} n\~ao parte de hip\'oteses expl\'icitas sobre quais caracter\'isticas de uma face s\~ao relevantes. A rede convolucional aprende essas representa\c{c}\~oes diretamente dos dados de treinamento, o que a torna, em teoria, mais capaz de generalizar para condi\c{c}\~oes n\~ao vistas --- incluindo varia\c{c}\~oes de ilumina\c{c}\~ao que os m\'etodos baseados em caracter\'isticas manuais tendem a tratar como ru\'ido.
+
+O modelo foi projetado para ser leve e r\'apido, disponibilizado em formato ONNX e integrado ao OpenCV via \texttt{cv2.FaceDetectorYN} desde a vers\~ao 4.5.4. Em rela\c{c}\~ao ao MTCNN \cite{Zhang2016}, que segue a mesma linha de redes convolucionais para detec\c{c}\~ao facial, o YuNet \'e significativamente mais r\'apido. Um detalhe pr\'atico que encontramos durante a implementa\c{c}\~ao: o limiar de confian\c{c}a padr\~ao do OpenCV (0.9) precisou ser ajustado para 0.7 nas imagens de alta resolu\c{c}\~ao do dataset pr\'oprio, indicando que o modelo foi originalmente calibrado para imagens de dimens\~oes menores.
+
+\subsection{CLAHE}
+Quando a ilumina\c{c}\~ao de uma imagem \'e irregular --- muito escura em algumas regi\~oes e muito clara em outras --- a equaliza\c{c}\~ao global de histograma tende a piorar o resultado: ao redistribuir todas as intensidades de forma uniforme, ela super-amplifica o ru\'ido nas regi\~oes escuras. O CLAHE \cite{Zuiderveld1994} resolve esse problema dividindo a imagem em blocos menores e equalizando cada um de forma independente.
+
+Um par\^ametro de limite de contraste (\textit{clipLimit}) evita a amplifica\c{c}\~ao excessiva de ru\'ido, redistribuindo o excesso uniformemente entre os \textit{bins} do histograma local. Neste trabalho, aplicamos o CLAHE no canal de luminosidade~(Y) ap\'os convers\~ao para o espa\c{c}o YCrCb, com \textit{clipLimit}~=~2.0 e grade de $8 \times 8$ blocos, preservando as informa\c{c}\~oes de crominance e limitando artefatos visuais.
 
 % -------------------------------------------------------
 \section{Metodologia}
@@ -106,7 +86,7 @@ A primeira \'e um conjunto pr\'oprio coletado pelos autores, composto por fotogr
 
 A segunda fonte \'e o dataset p\'ublico \textbf{Labeled Faces in the Wild (LFW)} \cite{LFWTech}, amplamente utilizado como benchmark em tarefas de detec\c{c}\~ao e reconhecimento facial. Do LFW, foram selecionadas imagens representativas de condi\c{c}\~oes variadas de ilumina\c{c}\~ao para complementar o conjunto de avalia\c{c}\~ao e permitir uma compara\c{c}\~ao com cen\'arios mais diversos.
 
-Todas as imagens foram anotadas manualmente com \textit{bounding boxes} delimitando a regi\~ao do rosto, servindo como \textit{ground truth} para o c\'alculo das m\'etricas.
+Para o subconjunto LFW, as \textit{bounding boxes} de \textit{ground truth} foram geradas automaticamente pelo pr\'oprio Haar Cascade, seguindo a mesma estrat\'egia adotada em trabalhos que utilizam o LFW com alinhamento profundo. Para o dataset pr\'oprio, as anota\c{c}\~oes foram geradas automaticamente com o HOG+SVM como detector prim\'ario, com fallback para YuNet e Haar nos casos em que o HOG n\~ao detectou nenhuma face --- o que ocorreu em apenas uma imagem (ilumina\c{c}\~ao escura, resolvida com CLAHE+HOG). Essa abordagem de auto-anota\c{c}\~ao introduz vi\'es em favor dos detectores usados como refer\^encia, o que \'e reconhecido como limita\c{c}\~ao deste trabalho.
 
 \subsection{Pr\'e-processamento}
 
@@ -114,13 +94,13 @@ Cada imagem \'e processada em duas vers\~oes: sem pr\'e-processamento (imagem br
 
 \subsection{Implementa\c{c}\~ao dos Detectores}
 
-Os tr\^es detectores s\~ao implementados em Python, utilizando as bibliotecas OpenCV e scikit-image.
+Os tr\^es detectores s\~ao implementados em Python, utilizando as bibliotecas OpenCV e dlib.
 
 O \textbf{Haar Cascade} utiliza o classificador pr\'e-treinado \texttt{haarcascade\_frontalface\_default.xml}, dispon\'ivel nativamente no OpenCV \cite{ViolaJones2001}.
 
-O \textbf{HOG+SVM} \'e implementado com o detector de pessoas da scikit-image como base estrutural, adaptado para detec\c{c}\~ao facial por meio do descritor HOG com par\^ametros \texttt{orientations=9}, \texttt{pixels\_per\_cell=(8,8)} e \texttt{cells\_per\_block=(2,2)}, seguindo \cite{DalalTriggs2005}.
+O \textbf{HOG+SVM} \'e implementado com o detector frontal pr\'e-treinado da biblioteca dlib (\texttt{get\_frontal\_face\_detector}), que aplica o descritor HOG com janela deslizante sobre a imagem em escala de cinza, seguindo \cite{DalalTriggs2005}.
 
-O \textbf{YuNet} \'e carregado via m\'odulo \texttt{cv2.FaceDetectorYN}, utilizando o modelo \texttt{face\_detection\_yunet\_2023mar.onnx} \cite{Wu2023}. Por ser integrado ao OpenCV, dispensa depend\^encias externas e oferece infer\^encia eficiente.
+O \textbf{YuNet} \'e carregado via m\'odulo \texttt{cv2.FaceDetectorYN}, utilizando o modelo \texttt{face\_detection\_yunet\_2023mar.onnx} \cite{Wu2023}. O limiar de confian\c{c}a foi ajustado para \texttt{score\_threshold}~=~0.7 (padr\~ao OpenCV: 0.9), necess\'ario para acomodar imagens de alta resolu\c{c}\~ao onde os scores tendem a ser ligeiramente inferiores ao padr\~ao calibrado para imagens pequenas.
 
 \subsection{M\'etricas de Avalia\c{c}\~ao}
 
@@ -128,26 +108,104 @@ O desempenho de cada detector \'e avaliado pelas m\'etricas de \textbf{Precis\~a
 
 % -------------------------------------------------------
 \section{Resultados}
-% TODO: Inserir tabelas e graficos apos rodar os experimentos.
 
-\textit{[A ser preenchido ap\'os os experimentos.]}
+As Tabelas~\ref{tab:lfw} e~\ref{tab:proprio} apresentam o F1-score obtido em cada dataset. O LFW subset conta com 25 imagens por condi\c{c}\~ao (100 no total), enquanto o dataset pr\'oprio possui entre 4 e 6 imagens por condi\c{c}\~ao (19 no total) --- volume insuficiente para conclus\~oes estat\'isticas robustas, mas \'util para validar o comportamento dos detectores em imagens reais de alta resolu\c{c}\~ao (1920$\times$1080\,px).
+
+\begin{table}[!t]
+\renewcommand{\arraystretch}{1.2}
+\caption{F1-score no LFW Subset (IoU $\geq 0{,}5$, $n=25$/condi\c{c}\~ao)}
+\label{tab:lfw}
+\centering
+\begin{tabular}{llcc}
+\hline
+\textbf{Detector} & \textbf{Condi\c{c}\~ao} & \textbf{F1 (Raw)} & \textbf{F1 (CLAHE)} \\
+\hline
+Haar Cascade & Boa luz       & 0.962 & 0.960 \\
+             & Escuro        & 0.893 & 0.778 \\
+             & Lateral       & 0.980 & 0.939 \\
+             & Superexp.     & 0.962 & 0.902 \\
+\hline
+HOG+SVM      & Boa luz       & 0.898 & 0.920 \\
+             & Escuro        & 0.720 & 0.745 \\
+             & Lateral       & 0.939 & 0.917 \\
+             & Superexp.     & 0.923 & 0.923 \\
+\hline
+YuNet        & Boa luz       & 0.923 & 0.923 \\
+             & Escuro        & 0.717 & 0.717 \\
+             & Lateral       & 0.962 & 0.943 \\
+             & Superexp.     & 0.906 & 0.906 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[!t]
+\renewcommand{\arraystretch}{1.2}
+\caption{F1-score no Dataset Pr\'oprio (IoU $\geq 0{,}5$, $n=4$--$6$/condi\c{c}\~ao)}
+\label{tab:proprio}
+\centering
+\begin{tabular}{llcc}
+\hline
+\textbf{Detector} & \textbf{Condi\c{c}\~ao} & \textbf{F1 (Raw)} & \textbf{F1 (CLAHE)} \\
+\hline
+Haar Cascade & Boa luz       & 1.000 & 1.000 \\
+             & Escuro        & 1.000 & 0.000 \\
+             & Lateral       & 0.667 & 0.000 \\
+             & Superexp.     & 1.000 & 1.000 \\
+\hline
+HOG+SVM      & Boa luz       & 1.000 & 1.000 \\
+             & Escuro        & 0.000 & 1.000 \\
+             & Lateral       & 0.000 & 0.000 \\
+             & Superexp.     & 1.000 & 1.000 \\
+\hline
+YuNet        & Boa luz       & 0.000 & 1.000 \\
+             & Escuro        & 0.000 & 0.000 \\
+             & Lateral       & 1.000 & 1.000 \\
+             & Superexp.     & 1.000 & 1.000 \\
+\hline
+\end{tabular}
+\end{table}
+
+A Fig.~\ref{fig:f1} compara visualmente os dois datasets. O tempo m\'edio de infer\^encia, medido no LFW (Fig.~\ref{fig:time}), foi de $\approx$2,1\,ms para o YuNet, $\approx$3,4\,ms para o Haar e $\approx$9,2\,ms para o HOG+SVM.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{../results/figures/fig_f1_bar.pdf}
+\caption{F1-score por detector, condi\c{c}\~ao e passagem nos dois datasets.}
+\label{fig:f1}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.82\columnwidth]{../results/figures/fig_time_bar.pdf}
+\caption{Tempo m\'edio de infer\^encia por detector (LFW subset).}
+\label{fig:time}
+\end{figure}
 
 % -------------------------------------------------------
 \section{Discuss\~ao}
-% TODO: Interpretar os resultados. Relacionar com a literatura.
-% Discutir limitacoes (tamanho do dataset, condicoes controladas).
 
-\textit{[A ser desenvolvida.]}
+Ao analisar os resultados, alguns comportamentos chamaram mais a aten\c{c}\~ao do que esper\'avamos. O mais recorrente foi a queda de desempenho na condi\c{c}\~ao escuro em todos os detectores, o que j\'a era esperado pela literatura \cite{Adini1997}, mas a magnitude da queda variou bastante entre os m\'etodos.
+
+No LFW, o \textbf{Haar Cascade} foi o que melhor lidou com ilumina\c{c}\~ao lateral (F1\,=\,0.980 sem CLAHE), chegando a recall perfeito. Por\'em, o CLAHE piorou os resultados na condi\c{c}\~ao escuro: o F1 caiu de 0.893 para 0.778, porque a equaliza\c{c}\~ao amplificou texturas escuras no fundo, gerando falsos positivos extras (de 6 para 8 FPs). Esse efeito apareceu ainda mais forte no dataset pr\'oprio, onde o Haar com CLAHE chegou a F1\,=\,0.000 na condi\c{c}\~ao lateral --- duas detec\c{c}\~oes falsas e nenhum verdadeiro positivo.
+
+O \textbf{HOG+SVM} surpreendeu negativamente na condi\c{c}\~ao lateral do dataset pr\'oprio: F1\,=\,0.000 em ambas as passagens. No LFW esse cen\'ario havia retornado F1\,=\,0.939, o que mostra que as imagens pr\'oprias capturadas pelos autores tinham uma ilumina\c{c}\~ao lateral mais severa do que as imagens do LFW classificadas com essa condi\c{c}\~ao. Por outro lado, o CLAHE ajudou o HOG na condi\c{c}\~ao escuro do pr\'oprio (de F1\,=\,0.000 para 1.000), o \'unico caso em que o preprocessamento reverteu completamente uma falha de detec\c{c}\~ao.
+
+O \textbf{YuNet} foi o detector mais r\'apido ($\approx$2,1\,ms no LFW) e apresentou comportamento mais est\'avel entre condi\c{c}\~oes no LFW. No dataset pr\'oprio, por\'em, falhou em todas as imagens escuras (F1\,=\,0.000), mesmo com CLAHE. Durante a implementa\c{c}\~ao, descobrimos que o limiar de confian\c{c}a padr\~ao do OpenCV (0.9) era alto demais para imagens de alta resolu\c{c}\~ao: uma face claramente vis\'ivel na condi\c{c}\~ao bright recebia score 0.892 e era descartada. Reduzir o limiar para 0.7 resolveu esse problema nas condi\c{c}\~oes com ilumina\c{c}\~ao adequada, mas n\~ao foi suficiente para o cen\'ario escuro, onde o modelo simplesmente n\~ao encontrava a face.
+
+Quanto \`as \textbf{limita\c{c}\~oes}, o dataset pr\'oprio \'e pequeno demais (4--6 imagens por condi\c{c}\~ao) para tirar conclus\~oes gerais, e os resultados bin\'arios (F1 = 0 ou 1) refletem mais a variabilidade individual das fotos do que tend\^encias reais dos detectores. Al\'em disso, como as \textit{bounding boxes} de GT foram geradas automaticamente pelos pr\'oprios detectores, existe vi\'es que favorece o m\'etodo usado como anotador.
 
 % -------------------------------------------------------
 \section{Conclus\~ao}
-% TODO: Retomar objetivo, resumir achados, contribuicao pratica.
 
-\textit{[A ser desenvolvida.]}
+Neste trabalho comparamos o desempenho de tr\^es detectores faciais --- Haar Cascade, HOG+SVM e YuNet --- sob quatro condi\c{c}\~oes de ilumina\c{c}\~ao, usando tanto um subconjunto do LFW quanto um dataset pr\'oprio coletado pelos autores.
+
+Os resultados confirmam que ilumina\c{c}\~ao escura \'e o maior desafio para os tr\^es m\'etodos. O CLAHE teve efeito imprevis\'ivel: ajudou o HOG em alguns cen\'arios, mas piorou o Haar em outros, especialmente quando o fundo escuro gerou falsos positivos ap\'os a equaliza\c{c}\~ao. O YuNet se mostrou a op\c{c}\~ao mais r\'apida e relativamente consistente no LFW, mas exigiu ajuste do limiar de confian\c{c}a para funcionar com imagens de alta resolu\c{c}\~ao --- algo que n\~ao estava documentado de forma clara.
+
+Uma dificuldade pr\'atica que encontramos foi a constru\c{c}\~ao do \textit{ground truth}: usar o pr\'oprio detector para gerar as anota\c{c}\~oes introduz vi\'es e limita a imparcialidade da avalia\c{c}\~ao. Para trabalhos futuros, seria importante anotar manualmente as imagens e ampliar o dataset pr\'oprio para pelo menos 20 imagens por condi\c{c}\~ao, viabilizando uma an\'alise mais confi\'avel. Explorar detectores mais robustos, como o MTCNN ou o RetinaFace, tamb\'em seria uma continuidade natural deste estudo.
 
 % -------------------------------------------------------
 \section*{Agradecimentos}
-\textit{[A ser desenvolvida.]}
+Os autores agradecem ao corpo docente da Gradua\c{c}\~ao em Ci\^encia da Computa\c{c}\~ao do IDP pelo suporte e orienta\c{c}\~ao ao longo do desenvolvimento deste trabalho.
 
 % -------------------------------------------------------
 \begin{thebibliography}{00}
